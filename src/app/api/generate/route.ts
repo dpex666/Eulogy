@@ -67,12 +67,15 @@ export async function POST(req: NextRequest) {
       ip_address: ip,
     });
 
-    await db.from('eulogies').insert({
+    const { error: eulogyInsertError } = await db.from('eulogies').insert({
       email: email.toLowerCase(),
       deceased_name: deceasedName,
       eulogy_text: eulogy,
       form_data: body,
     });
+    if (eulogyInsertError) {
+      console.error('Eulogies insert error (table may not exist):', eulogyInsertError.message);
+    }
 
     return NextResponse.json({ eulogy, blocked: false });
   } catch (err) {
