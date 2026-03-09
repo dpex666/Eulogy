@@ -29,6 +29,12 @@ export default function Navbar() {
             >
               Pricing
             </Link>
+            <Link
+              href="/my-eulogies"
+              className="text-sm font-medium text-[#D4E9CA] hover:text-white transition-colors"
+            >
+              My eulogies
+            </Link>
           </div>
 
           {/* CTA */}

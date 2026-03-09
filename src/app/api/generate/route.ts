@@ -67,6 +67,13 @@ export async function POST(req: NextRequest) {
       ip_address: ip,
     });
 
+    await db.from('eulogies').insert({
+      email: email.toLowerCase(),
+      deceased_name: deceasedName,
+      eulogy_text: eulogy,
+      form_data: body,
+    });
+
     return NextResponse.json({ eulogy, blocked: false });
   } catch (err) {
     console.error('Generate error:', err);

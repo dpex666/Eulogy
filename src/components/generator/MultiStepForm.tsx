@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import StepIndicator from '@/components/ui/StepIndicator';
@@ -44,6 +44,17 @@ export default function MultiStepForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [needsMoreInfo, setNeedsMoreInfo] = useState<string | null>(null);
+  const [prevEulogyCount, setPrevEulogyCount] = useState(0);
+
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+
+  useEffect(() => {
+    if (step !== 5 || !emailValid) return;
+    fetch(`/api/eulogies?email=${encodeURIComponent(formData.email)}`)
+      .then((r) => r.json())
+      .then((d) => setPrevEulogyCount(d.eulogies?.length ?? 0))
+      .catch(() => {});
+  }, [step, formData.email, emailValid]);
 
   function handleChange(field: keyof EulogyFormData, value: string) {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -143,6 +154,22 @@ export default function MultiStepForm() {
                 >
                   Go back and add more memories
                 </button>
+              </div>
+            )}
+
+            {step === 5 && prevEulogyCount > 0 && (
+              <div className="mt-4 rounded-lg bg-[#D4E9CA] border border-[#85F199]/50 px-4 py-3 flex items-center justify-between gap-3">
+                <p className="text-sm text-[#1D4641]">
+                  You have {prevEulogyCount} saved {prevEulogyCount === 1 ? 'eulogy' : 'eulogies'} under this email.
+                </p>
+                <a
+                  href="/my-eulogies"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-[#1D4641] underline underline-offset-2 whitespace-nowrap hover:text-[#48705B]"
+                >
+                  View them
+                </a>
               </div>
             )}
 
