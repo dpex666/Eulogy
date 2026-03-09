@@ -56,7 +56,16 @@ export default function ResultPage() {
         body: JSON.stringify({ email: storedEmail }),
       })
         .then((r) => r.json())
-        .then((d) => setIsPaid(d.isPaid || false))
+        .then((d) => {
+          const paid = d.isPaid || false;
+          setIsPaid(paid);
+          // If the user just paid but was previously blocked, unblock them and
+          // redirect to generate so they can create their (first real) eulogy.
+          if (paid && storedBlocked) {
+            sessionStorage.setItem('eulogy_blocked', 'false');
+            router.push('/generate');
+          }
+        })
         .catch(() => {});
     }
   }, [router]);

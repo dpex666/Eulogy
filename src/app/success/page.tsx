@@ -73,11 +73,11 @@ export default async function SuccessPage({
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link href="/result">
-              <Button variant="primary" size="lg">Back to my eulogy</Button>
-            </Link>
             <Link href="/generate">
-              <Button variant="ghost" size="lg">Create another eulogy</Button>
+              <Button variant="primary" size="lg">Generate my eulogy</Button>
+            </Link>
+            <Link href="/result">
+              <Button variant="ghost" size="lg">Back to my result</Button>
             </Link>
           </div>
 
