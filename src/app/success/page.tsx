@@ -3,12 +3,53 @@ import Button from '@/components/ui/Button';
 import Footer from '@/components/landing/Footer';
 import { Check } from 'lucide-react';
 import type { Metadata } from 'next';
+import { createStripe } from '@/lib/stripe';
+import { createSupabaseServer } from '@/lib/supabase';
 
 export const metadata: Metadata = {
   title: 'Payment Successful | EulogyWriter',
 };
 
-export default function SuccessPage() {
+async function verifyAndRecordPayment(sessionId: string) {
+  try {
+    const stripe = createStripe();
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (session.payment_status !== 'paid') return;
+
+    const email =
+      session.metadata?.email ||
+      session.customer_email ||
+      session.customer_details?.email;
+
+    if (!email) return;
+
+    const db = createSupabaseServer();
+    await db.from('paid_users').upsert(
+      {
+        email: email.toLowerCase(),
+        stripe_customer_id: session.customer as string,
+        stripe_session_id: session.id,
+        active: true,
+      },
+      { onConflict: 'email' }
+    );
+  } catch (err) {
+    console.error('Success page payment verification error:', err);
+  }
+}
+
+export default async function SuccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ session_id?: string }>;
+}) {
+  const { session_id } = await searchParams;
+
+  if (session_id) {
+    await verifyAndRecordPayment(session_id);
+  }
+
   return (
     <>
       <header className="bg-[#1D4641] h-16 flex items-center px-6">
@@ -19,7 +60,6 @@ export default function SuccessPage() {
 
       <main className="min-h-screen bg-[#F3F7FA] flex flex-col items-center justify-center px-4 py-20">
         <div className="max-w-lg w-full text-center flex flex-col items-center gap-6">
-          {/* Check icon */}
           <div className="h-16 w-16 rounded-full bg-[#00C48C]/15 flex items-center justify-center">
             <Check className="h-8 w-8 text-[#00C48C]" />
           </div>
