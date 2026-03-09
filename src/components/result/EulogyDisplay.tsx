@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 
 interface EulogyDisplayProps {
   eulogy: string;
@@ -16,6 +16,16 @@ export default function EulogyDisplay({
   onEdit,
 }: EulogyDisplayProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+
+  // Set content once on mount only — never via dangerouslySetInnerHTML,
+  // which causes React to reset the DOM on every re-render and breaks editing.
+  useEffect(() => {
+    if (editorRef.current) {
+      const paragraphs = eulogy.split('\n').filter((p) => p.trim().length > 0);
+      editorRef.current.innerHTML = paragraphs.join('<br/><br/>');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleInput() {
     if (editorRef.current && onEdit) {
@@ -34,17 +44,14 @@ export default function EulogyDisplay({
       )}
 
       {isPaid ? (
-        // Paid: editable rich text
         <div
           ref={editorRef}
           contentEditable
           suppressContentEditableWarning
           onInput={handleInput}
           className="text-[#180026] leading-relaxed text-base sm:text-lg outline-none focus:ring-2 focus:ring-[#1D4641]/30 rounded-lg min-h-[200px] whitespace-pre-wrap"
-          dangerouslySetInnerHTML={{ __html: paragraphs.join('<br/><br/>') }}
         />
       ) : (
-        // Free: read-only
         <div className="text-[#180026] leading-relaxed text-base sm:text-lg">
           {paragraphs.map((para, i) => (
             <p key={i} className={i > 0 ? 'mt-5' : ''}>
@@ -62,3 +69,4 @@ export default function EulogyDisplay({
     </div>
   );
 }
+
