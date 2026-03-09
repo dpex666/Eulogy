@@ -32,7 +32,7 @@ const initialData: EulogyFormData = {
 
 function canAdvance(step: number, data: EulogyFormData): boolean {
   if (step === 1) return data.deceasedName.trim().length > 0;
-  if (step === 2) return data.relationship.trim().length > 0 && data.memories.trim().length > 10;
+  if (step === 2) return data.relationship.trim().length > 0 && data.memories.trim().length >= 60;
   if (step === 5) return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email);
   return true;
 }
@@ -43,6 +43,7 @@ export default function MultiStepForm() {
   const [formData, setFormData] = useState<EulogyFormData>(initialData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsMoreInfo, setNeedsMoreInfo] = useState<string | null>(null);
 
   function handleChange(field: keyof EulogyFormData, value: string) {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -59,6 +60,7 @@ export default function MultiStepForm() {
   async function handleSubmit() {
     setLoading(true);
     setError(null);
+    setNeedsMoreInfo(null);
 
     try {
       const res = await fetch('/api/generate', {
@@ -71,6 +73,12 @@ export default function MultiStepForm() {
 
       if (!res.ok) {
         setError(json.message || 'Something went wrong. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      if (json.needsMoreInfo) {
+        setNeedsMoreInfo(json.message);
         setLoading(false);
         return;
       }
@@ -121,6 +129,20 @@ export default function MultiStepForm() {
             {error && (
               <div className="mt-4 rounded-lg bg-[#FF4E68]/10 border border-[#FF4E68]/30 px-4 py-3">
                 <p className="text-sm text-[#FF4E68]">{error}</p>
+              </div>
+            )}
+
+            {needsMoreInfo && (
+              <div className="mt-4 rounded-lg bg-amber-50 border border-amber-300 px-4 py-4 flex flex-col gap-3">
+                <p className="text-sm font-medium text-amber-800">Not enough detail to write a personal eulogy</p>
+                <p className="text-sm text-amber-700">{needsMoreInfo}</p>
+                <button
+                  type="button"
+                  onClick={() => { setNeedsMoreInfo(null); setStep(2); }}
+                  className="self-start text-sm font-semibold text-amber-800 underline underline-offset-2 hover:text-amber-900"
+                >
+                  Go back and add more memories
+                </button>
               </div>
             )}
 

@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { generateEulogy } from '@/lib/claude';
+import { generateEulogy, isEulogyRefusal } from '@/lib/claude';
 import { checkCanGenerate } from '@/lib/rateLimit';
 import { createSupabaseServer } from '@/lib/supabase';
 import { EulogyFormData } from '@/types/eulogy';
@@ -50,6 +50,17 @@ export async function POST(req: NextRequest) {
       );
 
     const eulogy = await generateEulogy(body);
+
+    if (isEulogyRefusal(eulogy)) {
+      return NextResponse.json(
+        {
+          needsMoreInfo: true,
+          message:
+            'Your answers did not have enough detail to write a personal eulogy. Go back and add more specific memories — a real story or moment makes all the difference.',
+        },
+        { status: 200 }
+      );
+    }
 
     await db.from('generations').insert({
       email: email.toLowerCase(),

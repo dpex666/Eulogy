@@ -6,7 +6,12 @@ interface Props {
   onChange: (field: keyof EulogyFormData, value: string) => void;
 }
 
+const MEMORIES_MIN = 60;
+
 export default function FormStep2({ data, onChange }: Props) {
+  const memoriesLen = data.memories.trim().length;
+  const remaining = MEMORIES_MIN - memoriesLen;
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -25,15 +30,22 @@ export default function FormStep2({ data, onChange }: Props) {
         hint="This helps the eulogy feel like it is coming from you personally."
       />
 
-      <Textarea
-        label="Key memories and stories"
-        placeholder="Share the moments that meant the most. It does not have to be polished. Write it how you would tell a friend..."
-        value={data.memories}
-        onChange={(e) => onChange('memories', e.target.value)}
-        required
-        className="min-h-[160px]"
-        hint="The more specific the memory, the more personal the eulogy. A single clear story is worth more than a list of general traits."
-      />
+      <div className="flex flex-col gap-1">
+        <Textarea
+          label="Key memories and stories"
+          placeholder="Share the moments that meant the most. It does not have to be polished. Write it how you would tell a friend..."
+          value={data.memories}
+          onChange={(e) => onChange('memories', e.target.value)}
+          required
+          className="min-h-[160px]"
+          hint="The more specific the memory, the more personal the eulogy. A single clear story is worth more than a list of general traits."
+        />
+        {remaining > 0 && (
+          <p className="text-xs text-amber-600">
+            Add {remaining} more character{remaining !== 1 ? 's' : ''} to continue. Try including a specific moment or story.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

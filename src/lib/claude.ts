@@ -77,6 +77,28 @@ export function buildEulogyPrompt(data: EulogyFormData): string {
   return parts.join('\n');
 }
 
+const REFUSAL_PHRASES = [
+  'i need more',
+  'i need additional',
+  'could you provide',
+  'please provide',
+  'please share',
+  'to write a meaningful',
+  'to create a proper',
+  'to write a heartfelt',
+  'more information',
+  'more details about',
+  'would you be able to share',
+  'i don\'t have enough',
+  'i don\'t have sufficient',
+  'without more',
+];
+
+export function isEulogyRefusal(text: string): boolean {
+  const lower = text.toLowerCase();
+  return REFUSAL_PHRASES.some((p) => lower.includes(p));
+}
+
 export async function generateEulogy(data: EulogyFormData): Promise<string> {
   const message = await getClient().messages.create({
     model: 'claude-sonnet-4-6',
