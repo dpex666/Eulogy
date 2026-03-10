@@ -75,3 +75,36 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+/* Print styles — show only the eulogy content */
+@media print {
+  header,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.6;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Hide everything except the eulogy card */
+  main > div > *:not([data-print-eulogy]) {
+    display: none !important;
+  }
+
+  [data-print-eulogy] {
+    display: block !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+}

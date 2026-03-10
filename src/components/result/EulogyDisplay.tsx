@@ -36,7 +36,7 @@ export default function EulogyDisplay({
   const paragraphs = eulogy.split('\n').filter((p) => p.trim().length > 0);
 
   return (
-    <div className="rounded-2xl bg-[#F7F6F3] border border-[#D4E9CA] p-8 sm:p-10">
+    <div data-print-eulogy className="rounded-2xl bg-[#F7F6F3] border border-[#D4E9CA] p-8 sm:p-10">
       {deceasedName && (
         <p className="text-xs font-semibold text-[#48705B] uppercase tracking-widest mb-6">
           In memory of {deceasedName}
