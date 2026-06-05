@@ -23,8 +23,14 @@ export default function Footer() {
             <Link href="/pricing" className="text-[#D4E9CA] hover:text-white transition-colors">
               Pricing
             </Link>
-            <Link href="#how-it-works" className="text-[#D4E9CA] hover:text-white transition-colors">
-              How it works
+            <Link href="/my-eulogies" className="text-[#D4E9CA] hover:text-white transition-colors">
+              My eulogies
+            </Link>
+            <Link href="/terms" className="text-[#D4E9CA] hover:text-white transition-colors">
+              Terms
+            </Link>
+            <Link href="/privacy" className="text-[#D4E9CA] hover:text-white transition-colors">
+              Privacy
             </Link>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
-import { Copy, Check, Sparkles, Lock } from 'lucide-react';
+import { Copy, Check, Sparkles, Lock, Printer } from 'lucide-react';
 
 interface ActionButtonsProps {
   eulogy: string;
@@ -37,8 +37,22 @@ export default function ActionButtons({
     }
   }
 
+  function handlePrint() {
+    window.print();
+  }
+
   return (
     <div className="flex flex-wrap gap-3">
+      {/* Print button - available to all */}
+      <Button
+        variant="ghost"
+        onClick={handlePrint}
+        className="flex items-center gap-2 print:hidden"
+      >
+        <Printer className="h-4 w-4" />
+        Print eulogy
+      </Button>
+
       {/* Copy button - available to all */}
       <Button
         variant={copied ? 'secondary' : 'primary'}

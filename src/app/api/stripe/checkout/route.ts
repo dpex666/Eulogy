@@ -11,6 +11,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Email is required.' }, { status: 400 });
     }
 
+    const priceId = process.env.STRIPE_PRICE_ID;
+    if (!priceId) {
+      console.error('STRIPE_PRICE_ID environment variable is not set');
+      return NextResponse.json(
+        { message: 'Payment is not configured. Please contact support.' },
+        { status: 500 }
+      );
+    }
+
     const stripe = createStripe();
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -20,7 +29,7 @@ export async function POST(req: NextRequest) {
       customer_email: email,
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID!,
+          price: priceId,
           quantity: 1,
         },
       ],

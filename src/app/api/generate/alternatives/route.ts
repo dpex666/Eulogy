@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { generateAlternatives } from '@/lib/claude';
+import { generateAlternatives } from '@/lib/ai';
 import { isPaidUser } from '@/lib/rateLimit';
 import { EulogyFormData } from '@/types/eulogy';
 
