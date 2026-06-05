@@ -72,7 +72,7 @@ export default function FormStep4({ data, onChange }: Props) {
       {/* Length */}
       <div className="flex flex-col gap-3">
         <p className="text-sm font-semibold text-[#180026]">Length</p>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {lengths.map((l) => (
             <button
               key={l.value}

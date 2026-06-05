@@ -1,10 +1,8 @@
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { EulogyFormData } from '@/types/eulogy';
 
 function getClient() {
-  return new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-  });
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
 
 const LENGTH_WORDS: Record<string, string> = {
@@ -89,8 +87,8 @@ const REFUSAL_PHRASES = [
   'more information',
   'more details about',
   'would you be able to share',
-  'i don\'t have enough',
-  'i don\'t have sufficient',
+  "i don't have enough",
+  "i don't have sufficient",
   'without more',
 ];
 
@@ -100,42 +98,35 @@ export function isEulogyRefusal(text: string): boolean {
 }
 
 export async function generateEulogy(data: EulogyFormData): Promise<string> {
-  const message = await getClient().messages.create({
-    model: 'claude-sonnet-4-6',
+  const completion = await getClient().chat.completions.create({
+    model: 'gpt-4o',
     max_tokens: 1500,
-    system: SYSTEM_PROMPT,
     messages: [
-      {
-        role: 'user',
-        content: buildEulogyPrompt(data),
-      },
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: buildEulogyPrompt(data) },
     ],
   });
 
-  const content = message.content[0];
-  if (content.type !== 'text') {
-    throw new Error('Unexpected response type from Claude');
-  }
-
-  return content.text;
+  const text = completion.choices[0]?.message?.content;
+  if (!text) throw new Error('No content in OpenAI response');
+  return text;
 }
 
 export async function generateAlternatives(
   data: EulogyFormData,
   originalEulogy: string
 ): Promise<{ tone: string; eulogy: string }[]> {
-  const alternativeTones = Object.keys(TONE_GUIDE).filter(
-    (t) => t !== data.tone
-  ).slice(0, 2);
+  const alternativeTones = Object.keys(TONE_GUIDE)
+    .filter((t) => t !== data.tone)
+    .slice(0, 2);
 
   const results = await Promise.all(
     alternativeTones.map(async (tone) => {
-      const modifiedData = { ...data, tone: tone as EulogyFormData['tone'] };
-      const message = await getClient().messages.create({
-        model: 'claude-sonnet-4-6',
+      const completion = await getClient().chat.completions.create({
+        model: 'gpt-4o',
         max_tokens: 1500,
-        system: SYSTEM_PROMPT,
         messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
           {
             role: 'user',
             content: `Here is an existing eulogy:\n\n${originalEulogy}\n\nNow rewrite it in a ${TONE_GUIDE[tone]} style. Keep all the same personal details and memories. Return only the rewritten eulogy text.`,
@@ -143,12 +134,12 @@ export async function generateAlternatives(
         ],
       });
 
-      const content = message.content[0];
-      if (content.type !== 'text') throw new Error('Unexpected response type');
+      const text = completion.choices[0]?.message?.content;
+      if (!text) throw new Error('No content in OpenAI response');
 
       return {
         tone: tone.charAt(0).toUpperCase() + tone.slice(1),
-        eulogy: content.text,
+        eulogy: text,
       };
     })
   );

@@ -106,6 +106,8 @@ export default function MultiStepForm() {
       sessionStorage.setItem('eulogy_email', formData.email);
       sessionStorage.setItem('eulogy_form', JSON.stringify(formData));
       sessionStorage.setItem('eulogy_blocked', 'false');
+      sessionStorage.setItem('eulogy_id', json.eulogyId || '');
+      sessionStorage.setItem('eulogy_saved', json.eulogySaved ? 'true' : 'false');
       router.push('/result');
     } catch {
       setError('Something went wrong. Please check your connection and try again.');

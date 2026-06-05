@@ -1,11 +1,13 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 interface EulogyDisplayProps {
   eulogy: string;
   deceasedName?: string;
   isPaid: boolean;
+  isAuthed: boolean;
+  eulogyId?: string;
   onEdit?: (newText: string) => void;
 }
 
@@ -13,9 +15,13 @@ export default function EulogyDisplay({
   eulogy,
   deceasedName,
   isPaid,
+  isAuthed,
+  eulogyId,
   onEdit,
 }: EulogyDisplayProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
 
   // Set content once on mount only — never via dangerouslySetInnerHTML,
   // which causes React to reset the DOM on every re-render and breaks editing.
@@ -27,13 +33,35 @@ export default function EulogyDisplay({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  async function persistEdit(text: string) {
+    if (!eulogyId) return;
+    try {
+      const res = await fetch('/api/eulogies', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: eulogyId, eulogy_text: text }),
+      });
+      setSaveStatus(res.ok ? 'saved' : 'failed');
+    } catch {
+      setSaveStatus('failed');
+    }
+  }
+
   function handleInput() {
-    if (editorRef.current && onEdit) {
-      onEdit(editorRef.current.innerText);
+    if (!editorRef.current) return;
+    const text = editorRef.current.innerText;
+    if (onEdit) onEdit(text);
+
+    if (isPaid && isAuthed && eulogyId) {
+      setSaveStatus('saving');
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => persistEdit(text), 1500);
     }
   }
 
   const paragraphs = eulogy.split('\n').filter((p) => p.trim().length > 0);
+  const canSave = isPaid && isAuthed && !!eulogyId;
+  const needsSignIn = isPaid && !isAuthed;
 
   return (
     <div data-print-eulogy className="rounded-2xl bg-[#F7F6F3] border border-[#D4E9CA] p-8 sm:p-10">
@@ -61,12 +89,20 @@ export default function EulogyDisplay({
         </div>
       )}
 
-      {isPaid && (
-        <p className="mt-6 text-xs text-[#807388]">
-          Click anywhere in the text above to edit it directly.
+      {canSave && (
+        <p className="mt-4 text-xs text-[#807388]">
+          {saveStatus === 'saving' && 'Saving...'}
+          {saveStatus === 'saved' && 'Changes saved.'}
+          {saveStatus === 'failed' && 'Could not save. Copy your text to keep it safe.'}
+          {saveStatus === 'idle' && 'Click anywhere in the text above to edit it directly.'}
+        </p>
+      )}
+
+      {needsSignIn && (
+        <p className="mt-4 text-xs text-[#807388]">
+          Click to edit. Sign in below to save your changes permanently.
         </p>
       )}
     </div>
   );
 }
-

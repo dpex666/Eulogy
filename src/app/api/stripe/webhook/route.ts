@@ -35,18 +35,21 @@ export async function POST(req: NextRequest) {
       session.customer_email ||
       session.customer_details?.email;
 
-    if (email) {
-      const db = createSupabaseServer();
-      await db.from('paid_users').upsert(
-        {
-          email: email.toLowerCase(),
-          stripe_customer_id: session.customer as string,
-          stripe_session_id: session.id,
-          active: true,
-        },
-        { onConflict: 'email' }
-      );
+    if (!email) {
+      console.error('Stripe webhook: no email on session', session.id);
+      return NextResponse.json({ message: 'No email found on session.' }, { status: 400 });
     }
+
+    const db = createSupabaseServer();
+    await db.from('paid_users').upsert(
+      {
+        email: email.toLowerCase(),
+        stripe_customer_id: session.customer as string,
+        stripe_session_id: session.id,
+        active: true,
+      },
+      { onConflict: 'email' }
+    );
   }
 
   return NextResponse.json({ received: true });
