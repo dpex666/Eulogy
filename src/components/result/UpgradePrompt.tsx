@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
 import { Check, Sparkles } from 'lucide-react';
+import { redirectTopLevel } from '@/lib/embed';
 
 interface UpgradePromptProps {
   email: string;
@@ -38,7 +39,7 @@ export default function UpgradePrompt({ email }: UpgradePromptProps) {
         return;
       }
 
-      window.location.href = json.url;
+      redirectTopLevel(json.url);
     } catch {
       setError('Something went wrong. Please try again.');
       setLoading(false);

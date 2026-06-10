@@ -7,6 +7,7 @@ import Badge from '@/components/ui/Badge';
 import Footer from '@/components/landing/Footer';
 import Navbar from '@/components/landing/Navbar';
 import { Check } from 'lucide-react';
+import { redirectTopLevel } from '@/lib/embed';
 
 const freeFeatures = [
   'One full eulogy generation',
@@ -48,7 +49,7 @@ export default function PricingPage() {
       const json = await res.json();
 
       if (json.url) {
-        window.location.href = json.url;
+        redirectTopLevel(json.url);
       } else {
         setEmailError('Could not start checkout. Please try again.');
         setLoading(false);
