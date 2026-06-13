@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import StepIndicator from '@/components/ui/StepIndicator';
@@ -10,6 +10,10 @@ import FormStep3 from './FormStep3';
 import FormStep4 from './FormStep4';
 import FormStep5 from './FormStep5';
 import { EulogyFormData } from '@/types/eulogy';
+import { isEmbedded } from '@/lib/embed';
+
+const DRAFT_KEY = 'eulogy_draft';
+const DRAFT_STEP_KEY = 'eulogy_draft_step';
 
 const TOTAL_STEPS = 5;
 
@@ -47,6 +51,30 @@ export default function MultiStepForm() {
   const [prevEulogyCount, setPrevEulogyCount] = useState(0);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+  const hydratedRef = useRef(false);
+  const capturedLeadRef = useRef('');
+
+  // Restore a saved draft so an accidental refresh or navigation (easy to do
+  // inside the Gaia iframe) never loses the user's answers.
+  useEffect(() => {
+    try {
+      const draft = sessionStorage.getItem(DRAFT_KEY);
+      if (draft) {
+        setFormData({ ...initialData, ...JSON.parse(draft) });
+        const savedStep = parseInt(sessionStorage.getItem(DRAFT_STEP_KEY) || '1', 10);
+        if (savedStep >= 1 && savedStep <= TOTAL_STEPS) setStep(savedStep);
+      }
+    } catch {}
+    hydratedRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    try {
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
+      sessionStorage.setItem(DRAFT_STEP_KEY, String(step));
+    } catch {}
+  }, [formData, step]);
 
   useEffect(() => {
     if (step !== 5 || !emailValid) return;
@@ -54,6 +82,28 @@ export default function MultiStepForm() {
       .then((r) => r.json())
       .then((d) => setPrevEulogyCount(d.eulogies?.length ?? 0))
       .catch(() => {});
+  }, [step, formData.email, emailValid]);
+
+  // Capture the lead as soon as a valid email is typed, not only on submit.
+  // People who reach step 5 and abandon are still worth following up with.
+  useEffect(() => {
+    if (step !== 5 || !emailValid) return;
+    const email = formData.email.toLowerCase();
+    if (capturedLeadRef.current === email) return;
+
+    const timer = setTimeout(() => {
+      capturedLeadRef.current = email;
+      fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          source: isEmbedded() ? 'eulogy-form-embedded' : 'eulogy-form',
+        }),
+      }).catch(() => {});
+    }, 1200);
+
+    return () => clearTimeout(timer);
   }, [step, formData.email, emailValid]);
 
   function handleChange(field: keyof EulogyFormData, value: string) {
@@ -77,7 +127,7 @@ export default function MultiStepForm() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, embedded: isEmbedded() }),
       });
 
       const json = await res.json();
@@ -102,6 +152,8 @@ export default function MultiStepForm() {
         return;
       }
 
+      sessionStorage.removeItem(DRAFT_KEY);
+      sessionStorage.removeItem(DRAFT_STEP_KEY);
       sessionStorage.setItem('eulogy_text', json.eulogy);
       sessionStorage.setItem('eulogy_email', formData.email);
       sessionStorage.setItem('eulogy_form', JSON.stringify(formData));

@@ -28,8 +28,10 @@ function validateLengths(body: EulogyFormData): string | null {
 
 export async function POST(req: NextRequest) {
   try {
-    const body: EulogyFormData = await req.json();
+    const body: EulogyFormData & { embedded?: boolean } = await req.json();
     const { email, deceasedName } = body;
+    // Distinguishes leads arriving via the Gaia website iframe from direct visits.
+    const channel = body.embedded ? '-embedded' : '';
 
     if (!email || !deceasedName) {
       return NextResponse.json(
@@ -53,7 +55,7 @@ export async function POST(req: NextRequest) {
       await db
         .from('leads')
         .upsert(
-          { email: email.toLowerCase(), source: 'eulogy-generator-blocked' },
+          { email: email.toLowerCase(), source: `eulogy-generator-blocked${channel}` },
           { onConflict: 'email' }
         );
 
@@ -70,7 +72,7 @@ export async function POST(req: NextRequest) {
     await db
       .from('leads')
       .upsert(
-        { email: email.toLowerCase(), source: 'eulogy-generator' },
+        { email: email.toLowerCase(), source: `eulogy-generator${channel}` },
         { onConflict: 'email' }
       );
 

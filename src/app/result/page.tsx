@@ -12,6 +12,7 @@ import Button from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { EulogyFormData } from '@/types/eulogy';
 import { createSupabaseBrowserAuth } from '@/lib/supabaseAuth';
+import GaiaCrossSell from '@/components/GaiaCrossSell';
 
 interface Variation {
   tone: string;
@@ -250,6 +251,8 @@ export default function ResultPage() {
           {!isPaid && (
             <UpgradePrompt email={email} />
           )}
+
+          <GaiaCrossSell />
 
           <p className="text-center text-xs text-[#807388]">
             A product by{' '}

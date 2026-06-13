@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Footer from '@/components/landing/Footer';
+import GaiaCrossSell from '@/components/GaiaCrossSell';
 import { Check } from 'lucide-react';
 import type { Metadata } from 'next';
 import { createStripe } from '@/lib/stripe';
@@ -81,21 +82,21 @@ export default async function SuccessPage({
             </Link>
           </div>
 
-          <div className="mt-6 rounded-xl bg-[#D4E9CA] p-5 text-left max-w-sm">
-            <p className="text-sm font-semibold text-[#1D4641] mb-2">Other services from Gaia Digital</p>
-            <p className="text-sm text-[#48705B]">
-              Gaia Digital builds thoughtful products for life events. Visit{' '}
-              <a
-                href="https://gaiaapp.net"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline font-medium"
-              >
-                gaiaapp.net
-              </a>{' '}
-              to see everything we offer.
-            </p>
+          <div className="mt-6 w-full text-left">
+            <GaiaCrossSell />
           </div>
+
+          <p className="text-xs text-[#807388]">
+            Gaia Digital builds thoughtful products for life events. See everything we offer at{' '}
+            <a
+              href="https://gaiaapp.net?utm_source=eulogywriter&utm_medium=referral"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#1D4641] underline font-medium"
+            >
+              gaiaapp.net
+            </a>
+          </p>
         </div>
       </main>
 
